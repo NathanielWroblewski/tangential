@@ -8,8 +8,11 @@ import renderCircle from './views/circle.js'
 import renderPolygon from './views/polygon.js'
 import { seed, noise } from './utilities/noise.js'
 import { grid, rand, stableSort, sample, remap } from './utilities/index.js'
-import { COLORS } from './constants/colors.js'
-import { ZOOM, FPS, τ, TIME_THRESHOLD } from './constants/dimensions.js'
+import { COLOR } from './constants/colors.js'
+import {
+  ZOOM, FPS, τ, TIME_THRESHOLD, Δθ, Δt, t0, AMPLITUDE, COORDINATE_FREQUENCY,
+  TIME_FREQUENCY, RADIUS
+} from './constants/dimensions.js'
 
 // Copyright (c) 2020 Nathaniel Wroblewski
 // I am making my contributions/submissions to this project solely in my personal
@@ -31,34 +34,16 @@ const camera = new Camera({
   up: Vector.from([0, 1, 0]),
   width: canvas.width,
   height: canvas.height,
-  zoom: 0.05
+  zoom: ZOOM
 })
 
 const HEIGHT = canvas.height
 const HALF_HEIGHT = HEIGHT/2
 
-const COLOR = '#FCF7FF'
-
 context.shadowColor = COLOR
 context.shadowBlur = 3
 
 seed(Math.random())
-
-const campos = Vector.from([0, 0, -100])
-
-const renderOrderComparator = (a, b) => {
-  const a0 = campos.subtract(a.center.transform(perspective))
-  const b0 = campos.subtract(b.center.transform(perspective))
-
-  if (a0.z < b0.z) return 1
-  if (a0.z > b0.z) return -1
-  if (a0.x < b0.x) return -1
-  if (a0.x > b0.x) return 1
-  if (a0.y < b0.y) return -1
-  if (a0.y > b0.y) return 1
-
-  return 0
-}
 
 const from = Vector.from([-10, -10])
 const to = Vector.from([10, 10])
@@ -84,28 +69,28 @@ const getOpacity = (y, height, halfHeight) => {
 const render = () => {
   context.clearRect(0, 0, canvas.width, canvas.height)
 
-  perspective.rotY(0.005)
+  perspective.rotY(Δθ)
 
   const τtime = τ * time
 
   points.forEach(({ coordinates, magnitude }, index) => {
     const [x, z] = coordinates
     const y = -2 * tan(τtime - magnitude)
-    const Δy = noise(x * 0.1, z * 0.1, time * 10) * 1.5
+    const Δy = noise(x * COORDINATE_FREQUENCY, z * COORDINATE_FREQUENCY, time * TIME_FREQUENCY) * AMPLITUDE
     const cartesian = Vector.from([x, y + Δy, z])
     const projected = camera.project(cartesian.transform(perspective))
     const opacity = getOpacity(projected.y, HEIGHT, HALF_HEIGHT)
 
     if (projected.y <= HEIGHT && projected.y >= 0) {
-      renderCircle(context, projected, 3, COLOR, COLOR, opacity)
+      renderCircle(context, projected, RADIUS, COLOR, COLOR, opacity)
     }
   })
 
-  time += 0.002
-  if (time > TIME_THRESHOLD) time = 0
+  time += Δt
+  if (time > TIME_THRESHOLD) time = t0
 }
 
-let time = 0.15
+let time = t0
 let prevTick = 0
 
 const step = () => {

@@ -5,12 +5,15 @@
 
 export const τ = 2 * Math.PI
 
-export const ZOOM = 0.1
+export const ZOOM = 0.05
 export const FPS = 60
 
-export const θdeg = 90
-
-export const Δθdeg = 5
-export const r = 10
+export const Δθ = 0.005
+export const Δt = 0.002
+export const t0 = 0.15
 
 export const TIME_THRESHOLD = 10000000
+export const AMPLITUDE = 1.5
+export const COORDINATE_FREQUENCY = 0.1
+export const TIME_FREQUENCY = 10
+export const RADIUS = 3
